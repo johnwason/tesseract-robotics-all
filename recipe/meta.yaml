@@ -31,6 +31,73 @@ source:
     git_depth: 50
     folder: src/tesseract_planning
 
+requirements:
+  build:
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+    - gtest
+    - gmock
+    - cmake
+    - ninja # [win]
+    - make # [linux]
+    - pkg-config
+    - swig
+    - colcon-common-extensions 
+    - lcov
+    - {{ cdt('mesa-libgl-devel') }}    # [linux]
+    - {{ cdt('mesa-dri-drivers') }}    # [linux]
+  host:
+    - boost-cpp 
+    - eigen 
+    - tinyxml2
+    - console_bridge
+    - assimp
+    - urdfdom
+    - fcl
+    - octomap 
+    - orocos-kdl 
+    - pcl
+    - gtest
+    - gmock
+    - pkg-config 
+    - osqp 
+    - osqp-eigen 
+    - xz
+    - ompl
+    - flann
+    - jsoncpp
+    - taskflow 
+    - python
+    - numpy
+    - pip
+    - yaml-cpp
+    - xorg-libx11    # [unix]
+    - xorg-libxext   # [unix]
+  run:
+    - boost-cpp
+    - eigen 
+    - tinyxml2
+    - console_bridge
+    - assimp
+    - urdfdom
+    - fcl
+    - octomap 
+    - orocos-kdl 
+    - pcl
+    - gtest
+    - gmock
+    - osqp 
+    - osqp-eigen 
+    - xz
+    - jsoncpp
+    - ompl
+    - taskflow 
+    - python
+    - numpy
+    - yaml-cpp
+    - xorg-libx11    # [unix]
+    - xorg-libxext   # [unix]
+
 outputs:
   - name: ros-industrial-cmake-boilerplate
     version: {{ ros_industrial_cmake_boilerplate_version }}
@@ -408,7 +475,7 @@ outputs:
         - boost-cpp
         - tinyxml2
         - yaml-cpp
-        - {{ pin_compatible('bullet-cpp', exact=True) }}
+        - bullet-cpp
         - fcl
         - ros-industrial-cmake-boilerplate
         - tesseract-robotics-common
@@ -421,7 +488,7 @@ outputs:
         - boost-cpp
         - tinyxml2
         - yaml-cpp
-        - {{ pin_compatible('bullet-cpp', exact=True) }}
+        - bullet-cpp
         - fcl
         - tesseract-robotics-common
         - tesseract-robotics-geometry
@@ -607,7 +674,7 @@ outputs:
         - ros-industrial-cmake-boilerplate
       run:
         - eigen
-        - bullet
+        - boost-cpp
     test:
       commands:
         - test -f ${PREFIX}/include/trajopt_utils/utils.hpp  # [unix]
@@ -631,12 +698,14 @@ outputs:
       host:
         - eigen
         - console_bridge
+        - bullet-cpp
         - boost-cpp
         - ros-industrial-cmake-boilerplate
         - trajopt-utils
       run:
         - eigen
         - bullet-cpp
+        - boost-cpp
         - trajopt-utils
     test:
       commands:
@@ -671,7 +740,6 @@ outputs:
         - trajopt-utils
       run:
         - eigen
-        - bullet
         - jsoncpp
         - console_bridge
         - osqp
