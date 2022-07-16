@@ -1,0 +1,14 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index aa21452..4bb96a2 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -32,8 +32,7 @@ target_code_coverage(${PROJECT_NAME} INTERFACE ALL ENABLE ${OPW_ENABLE_CODE_COVE
+ target_include_directories(${PROJECT_NAME} INTERFACE
+     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+     "$<INSTALL_INTERFACE:include>")
+-target_include_directories(${PROJECT_NAME} SYSTEM INTERFACE
+-    ${EIGEN3_INCLUDE_DIRS})
++target_link_libraries(${PROJECT_NAME} INTERFACE Eigen3::Eigen)
+ 
+ # Create test executable
+ add_executable(${PROJECT_NAME}_node src/test.cpp)

@@ -1,0 +1,16 @@
+github:
+  user_or_org: tesseract-robotics
+
+channels:
+  targets:
+    - ["tesseract-robotics", "main"]
+
+provider:
+  linux: github_actions
+  osx: None
+  win: github_actions
+  linux_aarch64: None
+  linux_ppc64le: None
+
+github_actions:
+  store_build_artifacts: True

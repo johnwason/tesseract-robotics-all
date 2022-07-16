@@ -1,0 +1,948 @@
+{% set version = "0.0.1" %}
+{% set ros_industrial_cmake_boilerplate_version = "0.3.0" %}
+{% set opw_kinematics_version = "0.4.4" %}
+{% set tesseract_version = "0.13.0" %}
+{% set tesseract_planning_version = "0.12.0" %}
+{% set trajopt_version = "0.3.0" %}
+{% set descartes_light_version = "0.3.1" %}
+
+package:
+  name: tesseract-robotics-all
+  version: {{ version }}
+
+source:
+  - url: https://github.com/ros-industrial/ros_industrial_cmake_boilerplate/archive/refs/tags/{{ ros_industrial_cmake_boilerplate_version }}.tar.gz
+    folder: src/ros_industrial_cmake_boilerplate
+  - url: https://github.com/Jmeyer1292/opw_kinematics/archive/refs/tags/{{ opw_kinematics_version }}.tar.gz
+    folder: src/opw_kinematics
+    patches:
+      - opw_interface_fix.patch
+  - git_url: https://github.com/johnwason/tesseract
+    git_rev: pr/BulletLibsAbsPath
+    folder: src/tesseract
+  - git_url: https://github.com/tesseract-robotics/trajopt.git
+    git_rev: {{ trajopt_version }}
+    folder: src/trajopt
+  - git_url: https://github.com/swri-robotics/descartes_light.git
+    git_rev: {{ descartes_light_version }}
+    folder: src/descartes_light
+  - git_url: https://github.com/tesseract-robotics/tesseract_planning.git
+    git_rev: {{ tesseract_planning_version }}
+    git_depth: 50
+    folder: src/tesseract_planning
+
+outputs:
+  - name: ros-industrial-cmake-boilerplate
+    version: {{ ros_industrial_cmake_boilerplate_version }}
+    script: build_ros_industrial_cmake_boilerplate.sh # [unix]
+    script: bld_ros_industrial_cmake_boilerplate.bat # [win]
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - lcov # [linux]
+    test:
+      commands:
+        - test -d ${PREFIX}/lib/cmake/ros_industrial_cmake_boilerplate  # [unix]
+        - test -f ${PREFIX}/lib/cmake/ros_industrial_cmake_boilerplate/ros_industrial_cmake_boilerplate-config.cmake  # [unix]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\ros_industrial_cmake_boilerplate (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\ros_industrial_cmake_boilerplate\ros_industrial_cmake_boilerplate-config.cmake (exit 1)  # [win]
+
+
+  - name: opw-kinematics
+    version: {{ opw_kinematics_version }}
+    script: build_opw_kinematics.sh # [unix]
+    script: bld_opw_kinematics.bat # [win]
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+      host:
+        - eigen
+        - ros-industrial-cmake-boilerplate
+      run:
+        - eigen
+    test:
+      commands:
+        - test -f ${PREFIX}/include/opw_kinematics/opw_kinematics.h  # [unix]
+        - test -f ${PREFIX}/lib/cmake/opw_kinematics/opw_kinematics-config.cmake # [unix]
+        - if not exist %LIBRARY_PREFIX%\include\opw_kinematics\opw_kinematics.h (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\opw_kinematics\opw_kinematics-config.cmake (exit 1)  # [win]
+  
+  - name: tesseract-robotics-common
+    script: build_common.sh # [unix]
+    script: bld_common.bat # [win]
+    version: {{ tesseract_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+        - lcov # [linux]
+      host:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tinyxml2
+        - yaml-cpp
+        - ros-industrial-cmake-boilerplate
+      run:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tinyxml2
+        - yaml-cpp
+    test:
+      commands:
+        - test -f ${PREFIX}/include/tesseract_common/macros.h  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_common.so  # [unix]
+        - test -f ${PREFIX}/lib/cmake/tesseract_common/tesseract_common-config.cmake # [unix]
+        - if not exist %LIBRARY_PREFIX%\include\tesseract_common\macros.h (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\tesseract_common.lib (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_common.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\tesseract_common\tesseract_common-config.cmake (exit 1)  # [win]
+  - name: tesseract-robotics-geometry
+    script: build_geometry.sh # [unix]
+    script: bld_geometry.bat # [win]
+    version: {{ tesseract_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - lcov # [linux]
+        - pkg-config
+        - ros-industrial-cmake-boilerplate
+      host:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tinyxml2
+        - yaml-cpp
+        - assimp
+        - octomap
+        - ros-industrial-cmake-boilerplate
+        - tesseract-robotics-common
+        - tesseract-robotics-support
+      run:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tinyxml2
+        - yaml-cpp
+        - assimp
+        - octomap
+        - tesseract-robotics-common
+        - tesseract-robotics-support
+    test:
+        commands:
+          - test -f ${PREFIX}/include/tesseract_geometry/geometry.h  # [unix]
+          - test -f ${PREFIX}/lib/cmake/tesseract_geometry/tesseract_geometry-config.cmake # [unix]
+          - if not exist %LIBRARY_PREFIX%\include\tesseract_geometry\geometry.h (exit 1)  # [win]
+          - if not exist %LIBRARY_PREFIX%\lib\cmake\tesseract_geometry\tesseract_geometry-config.cmake (exit 1)  # [win]
+  - name: tesseract-robotics-scene-graph
+    script: build_scene.sh # [unix]
+    script: bld_scene.bat # [win]
+    version: {{ tesseract_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+        - pkg-config
+        - lcov # [linux]
+      host:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tinyxml2
+        - yaml-cpp
+        - orocos-kdl
+        - ros-industrial-cmake-boilerplate
+        - tesseract-robotics-common
+        - tesseract-robotics-geometry
+      run:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tinyxml2
+        - yaml-cpp
+        - orocos-kdl
+        - tesseract-robotics-common
+        - tesseract-robotics-geometry
+    test:
+      commands:
+        - test -f ${PREFIX}/include/tesseract_scene_graph/graph.h  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_scene_graph.so  # [unix]
+        - test -f ${PREFIX}/lib/cmake/tesseract_scene_graph/tesseract_scene_graph-config.cmake # [unix]
+        - if not exist %LIBRARY_PREFIX%\include\tesseract_scene_graph\graph.h (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\tesseract_scene_graph.lib (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_scene_graph.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\tesseract_scene_graph\tesseract_scene_graph-config.cmake (exit 1)  # [win]
+  - name: tesseract-robotics-srdf
+    script: build_srdf.sh # [unix]
+    script: bld_srdf.bat # [win]
+    version: {{ tesseract_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+        - lcov # [linux]
+      host:
+        - pkg-config
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tinyxml2
+        - yaml-cpp
+        - ros-industrial-cmake-boilerplate
+        - tesseract-robotics-scene-graph
+        - tesseract-robotics-geometry
+      run:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tinyxml2
+        - yaml-cpp
+        - tesseract-robotics-common
+        - tesseract-robotics-scene-graph
+    test:
+      commands:
+        - test -f ${PREFIX}/include/tesseract_srdf/srdf_model.h  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_srdf.so  # [unix]
+        - test -f ${PREFIX}/lib/cmake/tesseract_srdf/tesseract_srdf-config.cmake # [unix]
+        - if not exist %LIBRARY_PREFIX%\include\tesseract_srdf\srdf_model.h (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\tesseract_srdf.lib (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_srdf.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\tesseract_srdf\tesseract_srdf-config.cmake (exit 1)  # [win]
+  - name: tesseract-robotics-state-solver
+    script: build_state_solver.sh # [unix]
+    script: bld_state_solver.bat # [win]
+    version: {{ tesseract_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+        - lcov # [linux]
+        - pkg-config
+      host:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tinyxml2
+        - yaml-cpp
+        - orocos-kdl
+        - ros-industrial-cmake-boilerplate
+        - tesseract-robotics-scene-graph
+        - tesseract-robotics-geometry
+      run:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tinyxml2
+        - yaml-cpp
+        - orocos-kdl
+        - tesseract-robotics-common
+        - tesseract-robotics-scene-graph
+    test:
+      commands:
+        - test -f ${PREFIX}/include/tesseract_state_solver/state_solver.h  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_state_solver_kdl.so  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_state_solver_ofkt.so  # [unix]
+        - test -f ${PREFIX}/lib/cmake/tesseract_state_solver/tesseract_state_solver-config.cmake # [unix]
+        - if not exist %LIBRARY_PREFIX%\include\tesseract_state_solver\state_solver.h (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_state_solver_kdl.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_state_solver_ofkt.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\tesseract_state_solver\tesseract_state_solver-config.cmake (exit 1)  # [win]
+  - name: tesseract-robotics-kinematics
+    script: build_kinematics.sh # [unix]
+    script: bld_kinematics.bat # [win]
+    version: {{ tesseract_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+        - lcov # [linux]
+        - pkg-config
+      host:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tinyxml2
+        - yaml-cpp
+        - orocos-kdl
+        - ros-industrial-cmake-boilerplate
+        - opw-kinematics
+        - tesseract-robotics-scene-graph
+        - tesseract-robotics-geometry
+        - tesseract-robotics-state-solver
+      run:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tinyxml2
+        - yaml-cpp
+        - orocos-kdl
+        - opw-kinematics
+        - tesseract-robotics-common
+        - tesseract-robotics-scene-graph
+        - tesseract-robotics-state-solver
+    test:
+      commands:
+        - test -f ${PREFIX}/include/tesseract_kinematics/core/forward_kinematics.h  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_kinematics_core.so  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_kinematics_kdl.so  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_kinematics_ur.so  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_kinematics_opw.so  # [unix]
+        - test -f ${PREFIX}/lib/cmake/tesseract_kinematics/tesseract_kinematics-config.cmake # [unix]
+        - if not exist %LIBRARY_PREFIX%\include\tesseract_kinematics\core\forward_kinematics.h (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\tesseract_kinematics_core.lib (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_kinematics_core.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_kinematics_opw.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_kinematics_kdl.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_kinematics_ur.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\tesseract_kinematics\tesseract_kinematics-config.cmake (exit 1)  # [win]
+  - name: tesseract-robotics-support
+    script: build_support.sh # [unix]
+    script: bld_support.bat # [win]
+    version: {{ tesseract_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+        - lcov # [linux]
+        - pkg-config
+      host:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tinyxml2
+        - yaml-cpp
+        - orocos-kdl
+        - opw-kinematics
+        - ros-industrial-cmake-boilerplate
+        - tesseract-robotics-common
+      run:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tinyxml2
+        - yaml-cpp
+        - orocos-kdl
+        - opw-kinematics
+        - tesseract-robotics-common
+    test:
+      commands:
+        - test -f ${PREFIX}/share/tesseract_support/urdf/abb_irb2400.srdf  # [unix]
+        - test -f ${PREFIX}/lib/cmake/tesseract_support/tesseract_support-config.cmake # [unix]
+        - if not exist %LIBRARY_PREFIX%\share\tesseract_support\urdf\abb_irb2400.srdf (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\tesseract_support\tesseract_support-config.cmake (exit 1)  # [win]
+  - name: tesseract-robotics-collision
+    script: build_collision.sh # [unix]
+    script: bld_collision.bat # [win]
+    version: {{ tesseract_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+        - lcov # [linux]
+        - pkg-config
+      host:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tinyxml2
+        - yaml-cpp
+        - {{ pin_compatible('bullet-cpp', exact=True) }}
+        - fcl
+        - ros-industrial-cmake-boilerplate
+        - tesseract-robotics-common
+        - tesseract-robotics-geometry
+        - tesseract-robotics-support
+        - tesseract-robotics-scene-graph
+      run:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tinyxml2
+        - yaml-cpp
+        - {{ pin_compatible('bullet-cpp', exact=True) }}
+        - fcl
+        - tesseract-robotics-common
+        - tesseract-robotics-geometry
+        - tesseract-robotics-support
+        - tesseract-robotics-scene-graph
+    test:
+      commands:
+        - test -f ${PREFIX}/include/tesseract_collision/core/common.h  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_collision_core.so  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_collision_bullet.so  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_collision_fcl.so  # [unix]
+        - test -f ${PREFIX}/lib/cmake/tesseract_collision/tesseract_collision-config.cmake # [unix]
+        - if not exist %LIBRARY_PREFIX%\include\tesseract_collision\core\common.h (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\tesseract_collision_core.lib (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_collision_core.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_collision_bullet.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_collision_fcl.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\tesseract_collision\tesseract_collision-config.cmake (exit 1)  # [win]
+  - name: tesseract-robotics-urdf
+    script: build_urdf.sh # [unix]
+    script: bld_urdf.bat # [win]
+    version: {{ tesseract_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+        - pkg-config
+        - lcov # [linux]
+        - {{ cdt('mesa-libgl-devel') }}  # [linux]
+        - {{ cdt('mesa-dri-drivers') }}  # [linux]
+      host:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tinyxml2
+        - yaml-cpp
+        - pcl
+        - ros-industrial-cmake-boilerplate
+        - tesseract-robotics-common
+        - tesseract-robotics-geometry
+        - tesseract-robotics-collision
+        - tesseract-robotics-scene-graph
+      run:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tinyxml2
+        - yaml-cpp
+        - pcl
+        - tesseract-robotics-common
+        - tesseract-robotics-geometry
+        - tesseract-robotics-collision
+        - tesseract-robotics-scene-graph
+    test:
+      commands:
+        - test -f ${PREFIX}/include/tesseract_urdf/urdf_parser.h  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_urdf.so  # [unix]
+        - test -f ${PREFIX}/lib/cmake/tesseract_urdf/tesseract_urdf-config.cmake # [unix]
+        - if not exist %LIBRARY_PREFIX%\include\tesseract_urdf\urdf_parser.h (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\tesseract_urdf.lib (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_urdf.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\tesseract_urdf\tesseract_urdf-config.cmake (exit 1)  # [win]
+  - name: tesseract-robotics-environment
+    script: build_environment.sh # [unix]
+    script: bld_environment.bat # [win]
+    version: {{ tesseract_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+        - pkg-config
+        - {{ cdt('mesa-libgl-devel') }}  # [linux]
+        - {{ cdt('mesa-dri-drivers') }}  # [linux]
+      host:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - ros-industrial-cmake-boilerplate
+        - tesseract-robotics-collision
+        - tesseract-robotics-geometry
+        - tesseract-robotics-kinematics
+        - tesseract-robotics-scene-graph
+        - tesseract-robotics-state-solver
+        - tesseract-robotics-common
+        - tesseract-robotics-urdf
+        - tesseract-robotics-srdf
+      run:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tesseract-robotics-collision
+        - tesseract-robotics-geometry
+        - tesseract-robotics-kinematics
+        - tesseract-robotics-scene-graph
+        - tesseract-robotics-state-solver
+        - tesseract-robotics-common
+        - tesseract-robotics-urdf
+        - tesseract-robotics-srdf
+    test:
+      commands:
+        - test -f ${PREFIX}/include/tesseract_environment/environment.h  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_environment.so  # [unix]
+        - test -f ${PREFIX}/lib/cmake/tesseract_environment/tesseract_environment-config.cmake # [unix]
+        - if not exist %LIBRARY_PREFIX%\include\tesseract_environment\environment.h (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\tesseract_environment.lib (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_environment.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\tesseract_environment\tesseract_environment-config.cmake (exit 1)  # [win]
+  - name: tesseract-robotics-visualization
+    script: build_visualization.sh # [unix]
+    script: bld_visualization.bat # [win]
+    version: {{ tesseract_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+        - pkg-config
+        - {{ cdt('mesa-libgl-devel') }}  # [linux]
+        - {{ cdt('mesa-dri-drivers') }}  # [linux]
+      host:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - ros-industrial-cmake-boilerplate
+        - tesseract-robotics-collision
+        - tesseract-robotics-common
+        - tesseract-robotics-environment
+        - tesseract-robotics-scene-graph
+        - tesseract-robotics-state-solver
+      run:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tesseract-robotics-collision
+        - tesseract-robotics-common
+        - tesseract-robotics-environment
+        - tesseract-robotics-scene-graph
+        - tesseract-robotics-state-solver
+    test:
+      commands:
+        - test -f ${PREFIX}/include/tesseract_visualization/visualization.h  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_visualization.so  # [unix]
+        - test -f ${PREFIX}/lib/cmake/tesseract_visualization/tesseract_visualization-config.cmake # [unix]
+        - if not exist %LIBRARY_PREFIX%\include\tesseract_visualization\visualization.h (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\tesseract_visualization.lib (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_visualization.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\tesseract_visualization\tesseract_visualization-config.cmake (exit 1)  # [win]
+  - name: trajopt-utils
+    script: build_trajopt_utils.sh # [unix]
+    script: bld_trajopt_utils.bat # [win]
+    version: {{ trajopt_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+      host:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - ros-industrial-cmake-boilerplate
+      run:
+        - eigen
+        - bullet
+    test:
+      commands:
+        - test -f ${PREFIX}/include/trajopt_utils/utils.hpp  # [unix]
+        - test -f ${PREFIX}/lib/cmake/trajopt_utils/trajopt_utils-config.cmake # [unix]
+        - if not exist %LIBRARY_PREFIX%\include\trajopt_utils\utils.hpp (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\trajopt_utils\trajopt_utils-config.cmake (exit 1)  # [win]
+  - name: vhacd
+    script: build_trajopt_vhacd.sh # [unix]
+    script: bld_trajopt_vhacd.bat # [win]
+    version: {{ trajopt_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+      host:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - ros-industrial-cmake-boilerplate
+        - trajopt-utils
+      run:
+        - eigen
+        - bullet-cpp
+        - trajopt-utils
+    test:
+      commands:
+        - test -f ${PREFIX}/include/vhacd/VHACD.h  # [unix]
+        - test -f ${PREFIX}/lib/libvhacd.so  # [unix]
+        - test -f ${PREFIX}/lib/cmake/vhacd/vhacd-config.cmake # [unix]
+        - if not exist %LIBRARY_PREFIX%\include\vhacd\VHACD.h (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\vhacd.lib (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\vhacd.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\vhacd\vhacd-config.cmake (exit 1)  # [win]
+  - name: trajopt-sco
+    script: build_trajopt_sco.sh # [unix]
+    script: bld_trajopt_sco.bat # [win]
+    version: {{ trajopt_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+      host:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - jsoncpp
+        - osqp
+        - ros-industrial-cmake-boilerplate
+        - trajopt-utils
+      run:
+        - eigen
+        - bullet
+        - jsoncpp
+        - console_bridge
+        - osqp
+        - trajopt-utils
+        - boost-cpp
+  - name: trajopt
+    script: build_trajopt.sh # [unix]
+    script: bld_trajopt.bat # [win]
+    version: {{ trajopt_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+        - pkg-config
+        - {{ cdt('mesa-libgl-devel') }}  # [linux]
+        - {{ cdt('mesa-dri-drivers') }}  # [linux]
+      host:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - trajopt-utils
+        - trajopt-sco
+        - ros-industrial-cmake-boilerplate
+        - tesseract-robotics-environment
+        - tesseract-robotics-visualization
+        - jsoncpp
+      run:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - trajopt-utils
+        - trajopt-sco
+        - tesseract-robotics-environment
+        - tesseract-robotics-visualization
+        - jsoncpp
+    test:
+      commands:
+        - test -f ${PREFIX}/include/trajopt/common.hpp  # [unix]
+        - test -f ${PREFIX}/lib/libtrajopt.so  # [unix]
+        - test -f ${PREFIX}/lib/cmake/trajopt/trajopt-config.cmake # [unix]
+        - if not exist %LIBRARY_PREFIX%\include\trajopt\common.hpp (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\trajopt.lib (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\trajopt.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\trajopt\trajopt-config.cmake (exit 1)  # [win]
+  - name: descartes-light
+    script: build_descartes_light.sh # [unix]
+    script: bld_descartes_light.bat # [win]
+    version: {{ descartes_light_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+      host:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - openmp
+        - ros-industrial-cmake-boilerplate
+      run:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - openmp
+  - name: tesseract-robotics-command-language
+    script: build_command_language.sh # [unix]
+    script: bld_command_language.bat # [win]
+    version: {{ tesseract_planning_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+        - lcov # [linux]
+      host:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tesseract-robotics-common
+      run:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tesseract-robotics-common
+    test:
+      commands:
+        - test -f ${PREFIX}/include/tesseract_command_language/plan_instruction.h  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_command_language.so  # [unix]
+        - test -f ${PREFIX}/lib/cmake/tesseract_command_language/tesseract_command_language-config.cmake # [unix]
+        - if not exist %LIBRARY_PREFIX%\include\tesseract_command_language\plan_instruction.h (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\tesseract_command_language.lib (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_command_language.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\tesseract_command_language\tesseract_command_language-config.cmake (exit 1)  # [win]
+  - name: tesseract-robotics-motion-planners
+    script: build_motion_planners.sh # [unix]
+    script: bld_motion_planners.bat # [win]
+    version: {{ tesseract_planning_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+        - lcov # [linux]
+        - {{ cdt('mesa-libgl-devel') }}  # [linux]
+        - {{ cdt('mesa-dri-drivers') }}  # [linux]
+        - pkg-config
+        - pcl
+      host:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tesseract-robotics-common
+        - tesseract-robotics-environment
+        - tesseract-robotics-command-language
+        - ompl
+        - ros-industrial-cmake-boilerplate
+        - descartes-light
+        - trajopt
+        - trajopt-sco
+      run:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - tesseract-robotics-common
+        - tesseract-robotics-environment
+        - tesseract-robotics-command-language
+        - ompl
+        - descartes-light
+        - trajopt
+        - trajopt-sco
+    test:
+      commands:
+        - test -f ${PREFIX}/include/tesseract_motion_planners/default_planner_namespaces.h  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_motion_planners_core.so  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_motion_planners_descartes.so  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_motion_planners_ompl.so  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_motion_planners_simple.so  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_motion_planners_trajopt.so  # [unix]
+        - test -f ${PREFIX}/lib/cmake/tesseract_motion_planners/tesseract_motion_planners-config.cmake # [unix]
+        - if not exist %LIBRARY_PREFIX%\include\tesseract_motion_planners\default_planner_namespaces.h (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\tesseract_motion_planners_core.lib (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\tesseract_motion_planners_descartes.lib (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\tesseract_motion_planners_ompl.lib (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\tesseract_motion_planners_simple.lib (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\tesseract_motion_planners_trajopt.lib (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_motion_planners_core.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_motion_planners_descartes.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_motion_planners_ompl.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_motion_planners_simple.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_motion_planners_trajopt.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\tesseract_motion_planners\tesseract_motion_planners-config.cmake (exit 1)  # [win]
+  - name: tesseract-robotics-time-parameterization
+    script: build_time_parameterization.sh # [unix]
+    script: bld_time_parameterization.bat # [win]
+    version: {{ tesseract_planning_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+        - lcov # [linux]
+        - pkg-config
+      host:
+        - eigen
+        - console_bridge
+        - tesseract-robotics-common
+        - tesseract-robotics-command-language
+        - ros-industrial-cmake-boilerplate
+      run:
+        - eigen
+        - console_bridge
+        - tesseract-robotics-common
+        - tesseract-robotics-command-language
+    test:
+      commands:
+        - test -f ${PREFIX}/include/tesseract_time_parameterization/trajectory_container.h  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_time_parameterization.so  # [unix]
+        - test -f ${PREFIX}/lib/cmake/tesseract_time_parameterization/tesseract_time_parameterization-config.cmake # [unix]
+        - if not exist %LIBRARY_PREFIX%\include\tesseract_time_parameterization\trajectory_container.h (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\tesseract_time_parameterization.lib (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_time_parameterization.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\tesseract_time_parameterization\tesseract_time_parameterization-config.cmake (exit 1)  # [win]
+  - name: tesseract-robotics-process-managers
+    script: build_process_managers.sh # [unix]
+    script: bld_process_managers.bat # [win]
+    version: {{ tesseract_planning_version }}
+    requirements:
+      build:
+        - {{ compiler('c') }}
+        - {{ compiler('cxx') }}
+        - gtest
+        - gmock
+        - cmake
+        - ninja # [win]
+        - make # [linux]
+        - ros-industrial-cmake-boilerplate
+        - lcov # [linux]
+        - {{ cdt('mesa-libgl-devel') }}  # [linux]
+        - {{ cdt('mesa-dri-drivers') }}  # [linux]
+        - pkg-config
+      host:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - taskflow
+        - ros-industrial-cmake-boilerplate
+        - tesseract-robotics-common
+        - tesseract-robotics-environment
+        - tesseract-robotics-command-language
+        - tesseract-robotics-motion-planners
+        - tesseract-robotics-time-parameterization
+      run:
+        - eigen
+        - console_bridge
+        - boost-cpp
+        - taskflow
+        - tesseract-robotics-common
+        - tesseract-robotics-environment
+        - tesseract-robotics-command-language
+        - tesseract-robotics-motion-planners
+        - tesseract-robotics-time-parameterization
+    test:
+      commands:
+        - test -f ${PREFIX}/include/tesseract_process_managers/core/default_process_planners.h  # [unix]
+        - test -f ${PREFIX}/lib/libtesseract_process_managers.so  # [unix]
+        - test -f ${PREFIX}/lib/cmake/tesseract_process_managers/tesseract_process_managers-config.cmake # [unix]
+        - if not exist %LIBRARY_PREFIX%\include\tesseract_process_managers\core\default_process_planners.h (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\tesseract_process_managers.lib (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\bin\tesseract_process_managers.dll (exit 1)  # [win]
+        - if not exist %LIBRARY_PREFIX%\lib\cmake\tesseract_process_managers\tesseract_process_managers-config.cmake (exit 1)  # [win]
+        
+
+build:
+  number: 20
+
+about:
+  home: https://github.com/tesseract-robotics/tesseract
+  summary: Motion Planning Environment
+  license: Apache-2.0 AND BSD-3-Clause AND BSD-2-Clause
+  # license_file: 
+  #   - src/tesseract/LICENSE
+  #   - src/tesseract/LICENSE.Apache-2.0
+  #   - src/tesseract/LICENSE.BSD-3-Clause
+  #   - src/tesseract/LICENSE.BSD-2-Clause
+
+extra:
+  recipe-maintainers:
+    - johnwason
